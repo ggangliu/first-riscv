@@ -1,6 +1,6 @@
 # firstRISCV
-Try to implement a riscv cpu in python for studying riscv ISA
 尝试用Python实现一个RISCV CPU，从而达到学习RISCV ISA的目的
+
 
 ## RISCV core
 Riscv核的核心逻辑介绍
