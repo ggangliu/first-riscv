@@ -31,5 +31,5 @@ def bench():
 sim = Simulator(dut)
 sim.add_clock(1e-6) # 1 MHz
 sim.add_sync_process(bench)
-with sim.write_vcd("test_isa.vcd"):
+with sim.write_vcd("isa.vcd"):
     sim.run()

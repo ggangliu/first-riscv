@@ -1,7 +1,7 @@
 #####################################
 # ALU testbench
 ####################################
-from amaranth.sim import Simulator 
+from amaranth.sim import Simulator, Delay, Settle, Tick
 import sys, os
 sys.path.append(os.getcwd()+"/../")
 
@@ -16,7 +16,7 @@ def alu_ut(dut, rs1, rs2, f3, expected):
 	yield dut.rs2.eq(rs2)
 	yield dut.f3.eq(f3)
 
-	yield #Tick()
+	yield Tick()
 
 	actual = yield dut.rd
 	if hexs(expected) != hexs(actual):
@@ -27,7 +27,7 @@ def alu_ut(dut, rs1, rs2, f3, expected):
 		print( "\033[32mPASS:\033[0m %s %s %s = %s" % (hexs(rs1), ALU_STRS[f3], hexs(rs2), hexs(expected)))
 
 def alu_test(alu):
-	yield #Settle()
+	yield Settle()
 	print("---ALU Tests---")
 
 	print("ADD (+) tests:")
@@ -39,7 +39,7 @@ def alu_test(alu):
 	yield from alu_ut(alu, 0x80000000, 0x80000000, ALU_ADD, 0)
 	yield from alu_ut(alu, 0x7FFFFFFF, 0x7FFFFFFF, ALU_ADD, 0xFFFFFFFE)
 
-	yield #Tick()
+	yield Tick()
 	print("ALU Tests: %d Passed, %d Failed" % (p, f))
 
 
@@ -52,6 +52,6 @@ if __name__ == "__main__":
 	sim = Simulator(alu)
 	sim.add_clock(1e-6)
 	sim.add_sync_process(proc)
-	with sim.write_vcd("test_alu.vcd"):
+	with sim.write_vcd("alu.vcd"):
 		sim.run()
 
