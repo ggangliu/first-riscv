@@ -13,9 +13,9 @@ from src.isa import *
 class ROM(Elaboratable):
     def __init__(self, data):
         # Data storage
+        self.size = len(data) * 4
         self.data = Memory(width=32, depth=len(data), init=data)
         self.r = self.data.read_port()
-        self.size = len(data) * 4
         # Initalize Wishbone bus arbiter
         self.arb = Arbiter(addr_width=ceil(log2(self.size+1)), data_width=32)
         self.arb.bus.memory_map = MemoryMap(addr_width=self.arb.bus.addr_width, data_width=self.arb.bus.data_width, alignment=0)

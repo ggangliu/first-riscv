@@ -14,6 +14,8 @@ def rom_ut(dut, address, expected):
     global p, f
     yield dut.arb.bus.adr.eq(address)
     yield Tick()
+    yield Tick()
+    yield Tick()
     yield Settle()
 
     actual = yield dut.arb.bus.dat_r
@@ -28,10 +30,10 @@ def rom_test(dut):
     yield Settle()
     print("---ROM Tests---")
     yield dut.arb.bus.cyc.eq(1)
-    yield from rom_ut(dut, 0x0, 0x01234567)
-    yield from rom_ut(dut, 0x0, 0x89abcdef)
-    yield from rom_ut(dut, 0x0, 0x42424242)
-    yield from rom_ut(dut, 0x0, 0xdeadbeef)
+    yield from rom_ut(dut, 0, 0x01234567)
+    yield from rom_ut(dut, 1, 0x89abcdef)
+    yield from rom_ut(dut, 2, 0x42424242)
+    yield from rom_ut(dut, 3, 0xdeadbeef)
 
     yield Tick()
     print("ROM Tests: %d Passed, %d Failed" % (p, f))
