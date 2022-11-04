@@ -1,5 +1,5 @@
 from amaranth import *
-from src.isa import *
+from .isa import *
 
 v_filename = "alu.v"
 #######################################
