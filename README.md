@@ -10,6 +10,9 @@ CPU的bootloader程序将存储在ROM中，也是CPU启动后运行的第一个�
 ## RAM
 由于程序运行过程中需要堆栈，因此RAM也是必不可少的部件
 
+## SPI Flash
+用外部SPI Flash来存储应用程序
+
 ## Peripherals
 1. 用于连接UART串口，从而支持串口输出/输入
 2. 用于控制外接LED，进行外部LED的点亮
