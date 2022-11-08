@@ -34,12 +34,12 @@ def spi_read_word( srom, virt_addr, phys_addr, simword, end_wait ):
     csa = yield srom.spi.cs.o
     spcmd = yield srom.spio
     spi_flash_read_ut("CS Low", csa, 1)
-    spi_flash_read_ut("SPI Read Cmd Value", spcmd, (phys_addr & 0x00FFFFFF) | 0x03000000)
+    spi_flash_read_ut("SPI Flash Read Cmd Value", spcmd, (phys_addr & 0x00FFFFFF) | 0x03000000)
     # Then the 32-bit read command is sent; two ticks per bit.
     for i in range(32):
         yield Settle()
         dout = yield srom.spi.mosi.o
-        spi_flash_read_ut("SPI Read Cmd  [%d]"%i, dout, (spcmd >> ( 31 - i )) & 0b1)
+        spi_flash_read_ut("SPI Flash Read Cmd  [%d]"%i, dout, (spcmd >> ( 31 - i )) & 0b1)
         yield Tick()
     # The following 32 bits should return the word. Simulate
     # the requested word arriving on the MISO pin, MSbit first.
@@ -52,7 +52,7 @@ def spi_read_word( srom, virt_addr, phys_addr, simword, end_wait ):
         yield Settle()
         expect = expect | ( ( 1 << i ) & simword )
         progress = yield srom.arb.bus.dat_r
-        spi_flash_read_ut( "SPI Read Word [%d]"%i, progress, expect )
+        spi_flash_read_ut( "SPI Flash Read Word [%d]"%i, progress, expect )
         if ( ( i & 0b111 ) == 0 ):
           i = i + 15
         else:
@@ -78,7 +78,7 @@ def spi_flash_test(srom):
     yield Tick()
     yield Settle()
     # Print a test header.
-    print( "--- SPI Flash 'ROM' Tests ---" )
+    print( "--- SPI Flash Tests ---" )
     # Test basic behavior by reading a few consecutive words.
     yield from spi_read_word( srom, 0x00, 0x200000, little_end( 0x89ABCDEF ), 0 )
     yield from spi_read_word( srom, 0x04, 0x200004, little_end( 0x0C0FFEE0 ), 4 )
@@ -92,7 +92,7 @@ def spi_flash_test(srom):
     yield from spi_read_word( srom, 0x0C, 0x20000C, little_end( 0xABACADAB ), 1 )
     # Done. Print the number of passed and failed unit tests.
     yield Tick()
-    print( "SPI 'ROM' Tests: %d Passed, %d Failed"%( p, f ) )
+    print( "SPI Flash Tests: %d Passed, %d Failed"%( p, f ) )
 
 if __name__ == "__main__":
     # Instantiate a test SPI ROM module.
