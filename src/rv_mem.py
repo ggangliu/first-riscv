@@ -1,7 +1,7 @@
 from amaranth import *
 from amaranth.back import *
 from amaranth_soc.wishbone import *
-from amarnath_soc.memory import *
+from amaranth_soc.memory import *
 
 import sys
 sys.path.append("..")
