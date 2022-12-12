@@ -54,3 +54,6 @@ CPU的bootloader程序将存储在ROM中，也是CPU启动后运行的第一个�
 
 ## test 
 用于测试验证src中的python实现，并生成波形文件
+
+# Amaranth tutorial
+[https://amaranth-lang.org/docs/amaranth/latest](https://amaranth-lang.org/docs/amaranth/latest)
