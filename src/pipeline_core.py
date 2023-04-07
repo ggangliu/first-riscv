@@ -80,7 +80,7 @@ class core( Elaboratable ):
       self.rs1.addr.eq( IF2ID_IR[ 15 : 20 ] ),  # rs1
       self.rs2.addr.eq( IF2ID_IR[ 20 : 25 ] ),  # rs2
       self.rd.addr.eq( IF2ID_IR[ 7  : 12 ] ),   # rd
-      self.opcode.eq( IF2ID_IR[ 0 : 7 ] )
+      self.opcode.eq( IF2ID_IR[ 0 : 7 ] )       # opcode
     ]
     
     m.d.comb += [
