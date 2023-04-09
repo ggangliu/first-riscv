@@ -71,8 +71,8 @@ class core( Elaboratable ):
     
     m.d.comb += [
       # Instruction bus address is always set to the program counter.
-      self.mem.imux.bus.adr.eq( self.pc ),
-      IF2ID_IR = self.mem.imux.bus.dat_r
+      self.mem.inst_mux.bus.adr.eq( self.pc ),
+      IF2ID_IR = self.mem.inst_mux.bus.dat_r
     ]
     
     # ID
@@ -85,9 +85,9 @@ class core( Elaboratable ):
     
     m.d.comb += [
       # Store data and width are always wired the same.
-      self.mem.ram.dw.eq( self.mem.imux.bus.dat_r[ 12 : 15 ] ), # funct3
-      self.mem.dmux.bus.dat_w.eq( self.rs2.data ),
-      self.mem.imux.bus.cyc.eq( iws == 0 )
+      self.mem.ram.dw.eq( self.mem.inst_mux.bus.dat_r[ 12 : 15 ] ), # funct3
+      self.mem.data_mux.bus.dat_w.eq( self.rs2.data ),
+      self.mem.inst_mux.bus.cyc.eq( iws == 0 )
     ]
     
     
@@ -110,16 +110,16 @@ class core( Elaboratable ):
         # the 'return PC' in the destination register (rc).
         with m.Case( '110-111' ):
           m.d.sync += self.pc.eq(
-            Mux( self.mem.imux.bus.dat_r[ 3 ],
+            Mux( self.mem.inst_mux.bus.dat_r[ 3 ],
                  self.pc + Cat(
                    Repl( 0, 1 ),
-                   self.mem.imux.bus.dat_r[ 21: 31 ],
-                   self.mem.imux.bus.dat_r[ 20 ],
-                   self.mem.imux.bus.dat_r[ 12 : 20 ],
-                   Repl( self.mem.imux.bus.dat_r[ 31 ], 12 ) ),
+                   self.mem.inst_mux.bus.dat_r[ 21: 31 ],
+                   self.mem.inst_mux.bus.dat_r[ 20 ],
+                   self.mem.inst_mux.bus.dat_r[ 12 : 20 ],
+                   Repl( self.mem.inst_mux.bus.dat_r[ 31 ], 12 ) ),
                  self.ra.data + Cat(
-                   self.mem.imux.bus.dat_r[ 20 : 32 ],
-                   Repl( self.mem.imux.bus.dat_r[ 31 ], 20 ) ) ),
+                   self.mem.inst_mux.bus.dat_r[ 20 : 32 ],
+                   Repl( self.mem.inst_mux.bus.dat_r[ 31 ], 20 ) ) ),
           )
           m.d.comb += self.rd.en.eq( self.rd.addr != 0 )
 
@@ -129,15 +129,15 @@ class core( Elaboratable ):
           # Check the ALU result. If it is zero, then:
           # a == b for BEQ/BNE, or a >= b for BLT[U]/BGE[U].
           with m.If( ( ( self.alu.y == 0 ) ^
-                         self.mem.imux.bus.dat_r[ 12 ] ) !=
-                       self.mem.imux.bus.dat_r[ 14 ] ):
+                         self.mem.inst_mux.bus.dat_r[ 12 ] ) !=
+                       self.mem.inst_mux.bus.dat_r[ 14 ] ):
             # Branch only if the condition is met.
             m.d.sync += self.pc.eq( self.pc + Cat(
               Repl( 0, 1 ),
-              self.mem.imux.bus.dat_r[ 8 : 12 ],
-              self.mem.imux.bus.dat_r[ 25 : 31 ],
-              self.mem.imux.bus.dat_r[ 7 ],
-              Repl( self.mem.imux.bus.dat_r[ 31 ], 20 ) ) )
+              self.mem.inst_mux.bus.dat_r[ 8 : 12 ],
+              self.mem.inst_mux.bus.dat_r[ 25 : 31 ],
+              self.mem.inst_mux.bus.dat_r[ 7 ],
+              Repl( self.mem.inst_mux.bus.dat_r[ 31 ], 20 ) ) )
 
         # Load / Store instructions: perform memory access
         # through the data bus.
@@ -147,38 +147,38 @@ class core( Elaboratable ):
           # * Word-aligned accesses are never mis-aligned.
           # * Halfword accesses are only mis-aligned when both of
           #   the address' LSbits are 1s.
-          with m.If( ( ( self.mem.dmux.bus.adr[ :2 ] == 0 ) |
-                       ( self.mem.imux.bus.dat_r[ 12 : 14 ] == 0 ) |
-                       ( ~( self.mem.dmux.bus.adr[ 0 ] &
-                            self.mem.dmux.bus.adr[ 1 ] &
-                            self.mem.imux.bus.dat_r[ 12 ] ) ) ) == 0 ):
+          with m.If( ( ( self.mem.data_mux.bus.adr[ :2 ] == 0 ) |
+                       ( self.mem.inst_mux.bus.dat_r[ 12 : 14 ] == 0 ) |
+                       ( ~( self.mem.data_mux.bus.adr[ 0 ] &
+                            self.mem.data_mux.bus.adr[ 1 ] &
+                            self.mem.inst_mux.bus.dat_r[ 12 ] ) ) ) == 0 ):
             self.trigger_trap( m,
               Cat( Repl( 0, 1 ),
-                   self.mem.imux.bus.dat_r[ 5 ],
+                   self.mem.inst_mux.bus.dat_r[ 5 ],
                    Repl( 1, 1 ) ),
               Past( self.pc ) )
           with m.Else():
             # Activate the data bus.
             m.d.comb += [
-              self.mem.dmux.bus.cyc.eq( 1 ),
+              self.mem.data_mux.bus.cyc.eq( 1 ),
               # Stores only: set the 'write enable' bit.
-              self.mem.dmux.bus.we.eq( self.mem.imux.bus.dat_r[ 5 ] )
+              self.mem.data_mux.bus.we.eq( self.mem.inst_mux.bus.dat_r[ 5 ] )
             ]
             # Don't proceed until the memory access finishes.
-            with m.If( self.mem.dmux.bus.ack == 0 ):
+            with m.If( self.mem.data_mux.bus.ack == 0 ):
               m.d.sync += [
                 self.pc.eq( self.pc ),
                 iws.eq( 2 )
               ]
             # Loads only: write to the CPU register.
-            with m.Elif( self.mem.imux.bus.dat_r[ 5 ] == 0 ):
+            with m.Elif( self.mem.inst_mux.bus.dat_r[ 5 ] == 0 ):
               m.d.comb += self.rc.en.eq( self.rc.addr != 0 )
 
         # System call instruction: ECALL, EBREAK, MRET,
         # and atomic CSR operations.
         with m.Case( OP_SYSTEM ):
-          with m.If( self.mem.imux.bus.dat_r[ 12 : 15 ] == F_TRAPS ):
-            with m.Switch( self.mem.imux.bus.dat_r[ 20 : 22 ] ):
+          with m.If( self.mem.inst_mux.bus.dat_r[ 12 : 15 ] == F_TRAPS ):
+            with m.Switch( self.mem.inst_mux.bus.dat_r[ 20 : 22 ] ):
               # An 'empty' ECALL instruction should raise an
               # 'environment-call-from-M-mode" exception.
               with m.Case( 0 ):
@@ -213,14 +213,14 @@ class core( Elaboratable ):
           pass
 
     # 'Always-on' decode/execute logic:
-    with m.Switch( self.mem.imux.bus.dat_r[ 0 : 7 ] ):
+    with m.Switch( self.mem.inst_mux.bus.dat_r[ 0 : 7 ] ):
       # LUI / AUIPC instructions: set destination register to
       # 20 upper bits, +pc for AUIPC.
       with m.Case( '0-10111' ):
         m.d.comb += self.rc.data.eq(
-          Mux( self.mem.imux.bus.dat_r[ 5 ], 0, self.pc ) +
+          Mux( self.mem.inst_mux.bus.dat_r[ 5 ], 0, self.pc ) +
           Cat( Repl( 0, 12 ),
-               self.mem.imux.bus.dat_r[ 12 : 32 ] ) )
+               self.mem.inst_mux.bus.dat_r[ 12 : 32 ] ) )
 
       # JAL / JALR instructions: set destination register to
       # the 'return PC' value.
@@ -236,47 +236,47 @@ class core( Elaboratable ):
           self.alu.a.eq( self.ra.data ),
           self.alu.b.eq( self.rb.data ),
           self.alu.f.eq( Mux(
-            self.mem.imux.bus.dat_r[ 14 ],
-            Cat( self.mem.imux.bus.dat_r[ 13 ], 0b001 ),
+            self.mem.inst_mux.bus.dat_r[ 14 ],
+            Cat( self.mem.inst_mux.bus.dat_r[ 13 ], 0b001 ),
             0b1000 ) )
         ]
 
       # Load instructions: Set the memory address and data register.
       with m.Case( OP_LOAD ):
         m.d.comb += [
-          self.mem.dmux.bus.adr.eq( self.ra.data +
-            Cat( self.mem.imux.bus.dat_r[ 20 : 32 ],
-                 Repl( self.mem.imux.bus.dat_r[ 31 ], 20 ) ) ),
+          self.mem.data_mux.bus.adr.eq( self.ra.data +
+            Cat( self.mem.inst_mux.bus.dat_r[ 20 : 32 ],
+                 Repl( self.mem.inst_mux.bus.dat_r[ 31 ], 20 ) ) ),
           self.rc.data.bit_select( 0, 8 ).eq(
-            self.mem.dmux.bus.dat_r[ :8 ] )
+            self.mem.data_mux.bus.dat_r[ :8 ] )
         ]
-        with m.If( self.mem.imux.bus.dat_r[ 12 ] ):
+        with m.If( self.mem.inst_mux.bus.dat_r[ 12 ] ):
           m.d.comb += [
             self.rc.data.bit_select( 8, 8 ).eq(
-              self.mem.dmux.bus.dat_r[ 8 : 16 ] ),
+              self.mem.data_mux.bus.dat_r[ 8 : 16 ] ),
             self.rc.data.bit_select( 16, 16 ).eq(
-              Repl( ( self.mem.imux.bus.dat_r[ 14 ] == 0 ) &
-                    self.mem.dmux.bus.dat_r[ 15 ], 16 ) )
+              Repl( ( self.mem.inst_mux.bus.dat_r[ 14 ] == 0 ) &
+                    self.mem.data_mux.bus.dat_r[ 15 ], 16 ) )
           ]
-        with m.Elif( self.mem.imux.bus.dat_r[ 13 ] ):
+        with m.Elif( self.mem.inst_mux.bus.dat_r[ 13 ] ):
           m.d.comb += self.rc.data.bit_select( 8, 24 ).eq(
-            self.mem.dmux.bus.dat_r[ 8 : 32 ] )
+            self.mem.data_mux.bus.dat_r[ 8 : 32 ] )
         with m.Else():
           m.d.comb += self.rc.data.bit_select( 8, 24 ).eq(
-            Repl( ( self.mem.imux.bus.dat_r[ 14 ] == 0 ) &
-                  self.mem.dmux.bus.dat_r[ 7 ], 24 ) )
+            Repl( ( self.mem.inst_mux.bus.dat_r[ 14 ] == 0 ) &
+                  self.mem.data_mux.bus.dat_r[ 7 ], 24 ) )
 
       # Store instructions: Set the memory address.
       with m.Case( OP_STORE ):
-        m.d.comb += self.mem.dmux.bus.adr.eq( self.ra.data +
-          Cat( self.mem.imux.bus.dat_r[ 7 : 12 ],
-               self.mem.imux.bus.dat_r[ 25 : 32 ],
-               Repl( self.mem.imux.bus.dat_r[ 31 ], 20 ) ) )
+        m.d.comb += self.mem.data_mux.bus.adr.eq( self.ra.data +
+          Cat( self.mem.inst_mux.bus.dat_r[ 7 : 12 ],
+               self.mem.inst_mux.bus.dat_r[ 25 : 32 ],
+               Repl( self.mem.inst_mux.bus.dat_r[ 31 ], 20 ) ) )
 
       # R-type ALU operation: set inputs for rc = ra ? rb
       with m.Case( OP_REG ):
         # Implement left shifts using the right shift ALU operation.
-        with m.If( self.mem.imux.bus.dat_r[ 12 : 15 ] == 0b001 ):
+        with m.If( self.mem.inst_mux.bus.dat_r[ 12 : 15 ] == 0b001 ):
           m.d.comb += [
             self.alu.a.eq( FLIP( self.ra.data ) ),
             self.alu.f.eq( 0b0101 ),
@@ -286,8 +286,8 @@ class core( Elaboratable ):
           m.d.comb += [
             self.alu.a.eq( self.ra.data ),
             self.alu.f.eq( Cat(
-              self.mem.imux.bus.dat_r[ 12 : 15 ],
-              self.mem.imux.bus.dat_r[ 30 ] ) ),
+              self.mem.inst_mux.bus.dat_r[ 12 : 15 ],
+              self.mem.inst_mux.bus.dat_r[ 30 ] ) ),
             self.rc.data.eq( self.alu.y ),
           ]
         m.d.comb += self.alu.b.eq( self.rb.data )
@@ -298,8 +298,8 @@ class core( Elaboratable ):
         # They use 'funct7' bits like R-type operations, and the
         # left shift can be implemented as a right shift to avoid
         # having two barrel shifters in the ALU.
-        with m.If( self.mem.imux.bus.dat_r[ 12 : 14 ] == 0b01 ):
-          with m.If( self.mem.imux.bus.dat_r[ 14 ] == 0 ):
+        with m.If( self.mem.inst_mux.bus.dat_r[ 12 : 14 ] == 0b01 ):
+          with m.If( self.mem.inst_mux.bus.dat_r[ 14 ] == 0 ):
             m.d.comb += [
               self.alu.a.eq( FLIP( self.ra.data ) ),
               self.alu.f.eq( 0b0101 ),
@@ -308,20 +308,20 @@ class core( Elaboratable ):
           with m.Else():
             m.d.comb += [
               self.alu.a.eq( self.ra.data ),
-              self.alu.f.eq( Cat( 0b101, self.mem.imux.bus.dat_r[ 30 ] ) ),
+              self.alu.f.eq( Cat( 0b101, self.mem.inst_mux.bus.dat_r[ 30 ] ) ),
               self.rc.data.eq( self.alu.y ),
             ]
         # Normal I-type operation:
         with m.Else():
           m.d.comb += [
             self.alu.a.eq( self.ra.data ),
-            self.alu.f.eq( self.mem.imux.bus.dat_r[ 12 : 15 ] ),
+            self.alu.f.eq( self.mem.inst_mux.bus.dat_r[ 12 : 15 ] ),
             self.rc.data.eq( self.alu.y ),
           ]
         # Shared I-type logic:
         m.d.comb += self.alu.b.eq( Cat(
-          self.mem.imux.bus.dat_r[ 20 : 32 ],
-          Repl( self.mem.imux.bus.dat_r[ 31 ], 20 ) ) )
+          self.mem.inst_mux.bus.dat_r[ 20 : 32 ],
+          Repl( self.mem.inst_mux.bus.dat_r[ 31 ], 20 ) ) )
 
     # End of CPU module definition.
     return m

@@ -31,7 +31,7 @@ def check_vals( expected, ni, cpu ):
     for j in range( len( expected[ ni ] ) ):
       ex = expected[ ni ][ j ]
       # Special case: program counter.
-      if ex[ 'r' ] == 'pc':
+      if ex[ 'register_file' ] == 'pc':
         cpc = yield cpu.pc
         if hexs( cpc ) == hexs( ex[ 'e' ] ):
           p += 1
@@ -44,8 +44,8 @@ def check_vals( expected, ni, cpu ):
                  " after %d operations (got: %s)"
                  %( hexs( ex[ 'e' ] ), ni, hexs( cpc ) ) )
       # Special case: RAM data (must be word-aligned).
-      elif type( ex[ 'r' ] ) == str and ex[ 'r' ][ 0:3 ] == "RAM":
-        rama = int( ex[ 'r' ][ 3: ] )
+      elif type( ex[ 'register_file' ] ) == str and ex[ 'register_file' ][ 0:3 ] == "RAM":
+        rama = int( ex[ 'register_file' ][ 3: ] )
         if ( rama % 4 ) != 0:
           f += 1
           print( "  \033[31mFAIL:\033[0m RAM == %s @ 0x%08X"
@@ -64,18 +64,18 @@ def check_vals( expected, ni, cpu ):
                    " after %d operations (got: %s)"
                    %( hexs( ex[ 'e' ] ), rama, ni, hexs( cpd ) ) )
       # Numbered general-purpose registers.
-      elif ex[ 'r' ] >= 0 and ex[ 'r' ] < 32:
-        cr = yield cpu.r[ ex[ 'r' ] ]
+      elif ex[ 'register_file' ] >= 0 and ex[ 'register_file' ] < 32:
+        cr = yield cpu.register_file[ ex[ 'register_file' ] ]
         if hexs( cr ) == hexs( ex[ 'e' ] ):
           p += 1
           print( "  \033[32mPASS:\033[0m r%02d == %s"
                  " after %d operations"
-                 %( ex[ 'r' ], hexs( ex[ 'e' ] ), ni ) )
+                 %( ex[ 'register_file' ], hexs( ex[ 'e' ] ), ni ) )
         else:
           f += 1
           print( "  \033[31mFAIL:\033[0m r%02d == %s"
                  " after %d operations (got: %s)"
-                 %( ex[ 'r' ], hexs( ex[ 'e' ] ),
+                 %( ex[ 'register_file' ], hexs( ex[ 'e' ] ),
                     ni, hexs( cr ) ) )
 
 # Helper method to run a CPU device for a given number of cycles,
@@ -213,7 +213,7 @@ if __name__ == "__main__":
       warnings.filterwarnings( "ignore", category = UnusedElaboratable )
       # Build the CPU to read its program from a 2MB offset in SPI Flash.
       prog_start = ( 2 * 1024 * 1024 )
-      cpu = CPU( SPI_ROM( prog_start, prog_start * 2, None ) )
+      cpu = CPU( SPI_Flash( prog_start, prog_start * 2, None ) )
       UpduinoPlatform().build( ResetInserter( cpu.clk_rst )( cpu ),
                                do_program = False )
   else:

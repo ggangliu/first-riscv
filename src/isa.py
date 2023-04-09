@@ -5,6 +5,14 @@ from amaranth import *
 
 v_filename = "isa.v"
 
+# funct7: 31-25
+# rs1:    19:15
+# rs2:    24-20
+# funct3: 14:12
+# rd:     11-7
+# opcode: 6-0
+
+
 #CSR
 # Instruction field definitions.
 # RV32I opcode definitions:
