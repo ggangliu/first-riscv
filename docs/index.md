@@ -11,7 +11,7 @@ Try to implement a RISC-V CPU for learning RISC-V architecture and microarchitec
 ## RISCV core
 
 CPU Core design logic
-![CPU uarch](/docs/images/first-riscv-cpu-arch.png)
+![CPU uarch](images/first-riscv-cpu-arch.png)
 
 ## ROM
 
