@@ -17,7 +17,7 @@ title: first risc-v
 email: ggang.liu@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   Try to implement a RISC-V CPU for learning RISC-V architecture and microarchitecture by Python language.
-baseurl: "https://ggangliu.cn/first-riscv/" # the subpath of your site, e.g. /blog
+baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://ggangliu.cn/first-riscv/" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: jekyllrb
 github_username:  ggangliu
