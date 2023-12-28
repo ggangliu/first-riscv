@@ -72,6 +72,3 @@ Python source code which implemente the first rsic-v
 ## test
 
 Used to test and verify the Python code in the 'src' folder, and generate waveform file
-
-# Amaranth tutorial
-[https://amaranth-lang.org/docs/amaranth/latest](https://amaranth-lang.org/docs/amaranth/latest)
