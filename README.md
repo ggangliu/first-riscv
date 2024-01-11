@@ -1,4 +1,6 @@
 # first-riscv
+EN | [中文](README-CN.md)
+
 Try to implement a RISC-V CPU for learning RISC-V architecture and microarchitecture by Python language 
 
 ## RISCV core
