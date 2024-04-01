@@ -6,10 +6,17 @@
 Welcome to first-riscv's documentation!
 =======================================
 
+
+Site Index
+==========
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   :glob:
 
+   overview
+   setup-guide
 
 
 Indices and tables
