@@ -6,6 +6,7 @@
 Welcome to first-riscv's documentation!
 =======================================
 
+.. image:: _static/first-riscv-cpu-arch.png
 
 Site Index
 ==========
@@ -22,6 +23,8 @@ Site Index
 Indices and tables
 ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. note::
+
+	* :ref:`genindex`
+	* :ref:`modindex`
+	* :ref:`search`
