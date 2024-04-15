@@ -18,13 +18,21 @@ Site Index
 
    overview
    setup-guide
+   deep-learning-framework
+   compiler
+   soc
+   cpu
+   cfu
+   accelerate-ai-model
 
 
 Indices and tables
 ==================
 
-.. note::
-
 	* :ref:`genindex`
 	* :ref:`modindex`
 	* :ref:`search`
+
+.. note::
+
+   1. Will be updated later
