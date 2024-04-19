@@ -1,4 +1,4 @@
-cfu
+CFU
 ===
 
 Custom Function Unit

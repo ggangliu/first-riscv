@@ -1,4 +1,4 @@
-cpu
+CPU
 ===
 
 cpu based on riscv

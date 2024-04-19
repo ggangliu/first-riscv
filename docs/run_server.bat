@@ -1,1 +1,1 @@
-sphinx-autobuild source ./build/html
+sphinx-autobuild source ./build/html --port=80 --open-browser

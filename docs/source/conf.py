@@ -61,5 +61,5 @@ source_suffix = {
 
 
 # conf.py
-extensions = ['sphinx_simplepdf', 'rst2pdf.pdfbuilder']
+extensions = ['myst_parser', 'sphinx_simplepdf', 'rst2pdf.pdfbuilder']
 pdf_documents = [('index', u'rst2pdf', u'Sample rst2pdf doc', u'ggangliu'),]

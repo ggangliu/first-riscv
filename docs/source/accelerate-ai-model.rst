@@ -1,4 +1,5 @@
-accelerate-ai-model
-===================
+Accelerating AI Model
+======================
 
 Accelerate AI Model by CFU
+

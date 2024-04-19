@@ -24,6 +24,7 @@ Site Index
    cpu
    cfu
    accelerate-ai-model
+   simulator
 
 
 Indices and tables

@@ -1,4 +1,4 @@
-soc
+SOC
 ===
 
 cfu-playground
